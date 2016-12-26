@@ -1,4 +1,4 @@
-=== xunhu-alipay-payment-for-WooCommerce ===
+﻿=== xunhu-alipay-payment-for-WooCommerce ===
 Contributors: XunhuWeb
 Donate link: https://www.wpweixin.net/product/345.html
 Tags:weixin,alipay, alipaypay, wordpress plugin, payments, alipay payments, woocommerce
