@@ -13,11 +13,76 @@ if (! defined ( 'ABSPATH' ))
 
 if (! defined ( 'XH_Alipay_Payment' )) {define ( 'XH_Alipay_Payment', 'XH_Alipay_Payment' );} else {return;}
 define ( 'XH_Alipay_Payment_VERSION', '1.0.0');
+define ( 'XH_Alipay_Payment_ID', 'xh-alipay-payment-wc');
 define ( 'XH_Alipay_Payment_FILE', __FILE__);
 define ( 'XH_Alipay_Payment_DIR', rtrim ( plugin_dir_path ( XH_Alipay_Payment_FILE ), '/' ) );
 define ( 'XH_Alipay_Payment_URL', rtrim ( plugin_dir_url ( XH_Alipay_Payment_FILE ), '/' ) );
 load_plugin_textdomain( XH_Alipay_Payment, false,dirname( plugin_basename( __FILE__ ) ) . '/lang/'  );
 
-require_once XH_Alipay_Payment_DIR.'/class-alipay-wc-payment-gateway.php';
-global $XH_Alipay_Payment_WC_Payment_Gateway;
-$XH_Alipay_Payment_WC_Payment_Gateway=new XH_Alipay_Payment_WC_Payment_Gateway();
+add_filter ( 'plugin_action_links_'.plugin_basename( XH_Alipay_Payment_FILE ),'xh_alipay_payment_plugin_action_links',10,1 );
+function xh_alipay_payment_plugin_action_links($links) {
+    return array_merge ( array (
+        'settings' => '<a href="' . admin_url ( 'admin.php?page=wc-settings&tab=checkout&section='.XH_Alipay_Payment_ID ) . '">'.__('Settings',XH_Alipay_Payment).'</a>'
+    ), $links );
+}
+
+add_action('init', 'xh_wechat_payment_for_wc_notify',10);
+if(!function_exists('xh_wechat_payment_for_wc_notify')){
+    function xh_wechat_payment_for_wc_notify(){
+        if(!class_exists('WC_Payment_Gateway')){
+            return;
+        }
+        
+        require_once XH_Alipay_Payment_DIR.'/class-alipay-wc-payment-gateway.php';
+        $XH_Alipay_Payment_WC_Payment_Gateway=new XH_Alipay_Payment_WC_Payment_Gateway();
+         
+        $data = $_POST;
+        if(!isset($data['hash'])
+            ||!isset($data['trade_order_id'])){
+                return;
+        }
+
+        $appkey =$XH_Alipay_Payment_WC_Payment_Gateway->get_option('appsecret');
+        $hash =$XH_Alipay_Payment_WC_Payment_Gateway->generate_xh_hash($data,$appkey);
+        if($data['hash']!=$hash){
+            return;
+        }
+
+        $order = new WC_Order($data['trade_order_id']);
+        try{
+            if(!$order){
+                throw new Exception('Unknow Order (id:'.$data['trade_order_id'].')');
+            }
+
+            if($order->needs_payment()&&$data['status']=='OD'){
+                $order->payment_complete(isset($data['transacton_id'])?$data['transacton_id']:'');
+            }
+        }catch(Exception $e){
+            //looger
+            $logger = new WC_Logger();
+            $logger->add( 'xh_wedchat_payment', $e->getMessage() );
+
+            $params = array(
+                'action'=>'fail',
+                'appid'=>$XH_Alipay_Payment_WC_Payment_Gateway->get_option('appid'),
+                'errcode'=>$e->getCode(),
+                'errmsg'=>$e->getMessage()
+            );
+
+            $params['hash']=$XH_Alipay_Payment_WC_Payment_Gateway->generate_xh_hash($params, $appkey);
+            ob_clean();
+            print json_encode($params);
+            exit;
+        }
+
+        $params = array(
+            'action'=>'success',
+            'appid'=>$XH_Alipay_Payment_WC_Payment_Gateway->get_option('appid')
+        );
+
+        $params['hash']=$XH_Alipay_Payment_WC_Payment_Gateway->generate_xh_hash($params, $appkey);
+        ob_clean();
+        print json_encode($params);
+        exit;
+    }
+}

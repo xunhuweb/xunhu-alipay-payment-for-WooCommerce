@@ -4,7 +4,7 @@ if (! defined ( 'ABSPATH' ))
 class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
     private $instructions;
 	public function __construct() {
-		$this->id                 = 'xh-alipay-payment-wc';
+		$this->id                 = XH_Alipay_Payment_ID;
 		$this->icon               = XH_Alipay_Payment_URL . '/images/logo/alipay.png';
 		$this->has_fields         = false;
 		
@@ -25,7 +25,6 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
 		    }
 		}
 		
-		add_filter ( 'plugin_action_links_'.plugin_basename( XH_Alipay_Payment_FILE ),array($this,'plugin_action_links') );
 		add_filter ( 'woocommerce_payment_gateways', array($this,'woocommerce_add_gateway') );
 		add_action ( 'woocommerce_update_options_payment_gateways_' .$this->id, array ($this,'process_admin_options') );
 		add_action ( 'woocommerce_update_options_payment_gateways', array ($this,'process_admin_options') );
@@ -36,12 +35,6 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
 	public function woocommerce_add_gateway($methods) {
 	    $methods [] = $this;
 	    return $methods;
-	}
-	
-	public function plugin_action_links($links) {
-	    return array_merge ( array (
-	        'settings' => '<a href="' . admin_url ( 'admin.php?page=wc-settings&tab=checkout&section='.$this->id ) . '">'.__('Settings',XH_Alipay_Payment).'</a>'
-	    ), $links );
 	}
 	
 	public function process_payment($order_id) {
@@ -71,7 +64,7 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
 		      'title'     => $this->get_order_title($order),
 		      'description'=> $this->get_order_desc($order),
 		      'time'      => time(),
-		      'notify_url'=> XH_Alipay_Payment_URL.'/notify.php',
+		      'notify_url'=> get_option('siteurl'),
 		      'return_url'=> $this->get_return_url($order),
 		      'callback_url'=>wc_get_checkout_url(),
 		      'nonce_str' => str_shuffle(time())
