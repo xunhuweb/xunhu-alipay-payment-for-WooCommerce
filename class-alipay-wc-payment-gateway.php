@@ -249,14 +249,16 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
     					'type'        => 'text',
     					'css'         => 'width:400px',
     					'default'     => '',
-    					'section'     => 'default'
+    					'section'     => 'default',
+                        'description' =>__('<a target="_blank" href="http://mp.wordpressopen.com">register and get app id</a>.', XH_Alipay_Payment )
 				),
 				'appsecret' => array(
     					'title'       => __( 'APP Secret', XH_Alipay_Payment ),
     					'type'        => 'text',
     					'css'         => 'width:400px',
     					'default'     => '',
-    					'section'     => 'default'
+    					'section'     => 'default',
+                        'description' =>__('<a target="_blank" href="http://mp.wordpressopen.com">register and get app secret</a>.', XH_Alipay_Payment )
 				),
 				'transaction_url' => array(
     					'title'       => __( 'Transaction Url', XH_Alipay_Payment ),
