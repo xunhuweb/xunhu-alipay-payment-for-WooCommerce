@@ -135,18 +135,19 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
 	    $ch = curl_init();
 	    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
 	    curl_setopt($ch,CURLOPT_URL, $url);
-	    curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,FALSE);
-	    curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,FALSE);
 	    curl_setopt($ch,CURLOPT_REFERER,get_option('siteurl'));
+	   //curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,FALSE);
+	   //curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,FALSE);
 	    curl_setopt($ch, CURLOPT_HEADER, FALSE);
 	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 	    curl_setopt($ch, CURLOPT_POST, TRUE);
 	    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
 	    $response = curl_exec($ch);
 	    $httpStatusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	    $error=curl_error($ch);
 	    curl_close($ch);
 	    if($httpStatusCode!=200){
-	        throw new Exception($response,$httpStatusCode);
+	        throw new Exception("invalid httpstatus:{$httpStatusCode} ,response:$response,detail_error:".$error,$httpStatusCode);
 	    }
 	    
 	    return $response;
