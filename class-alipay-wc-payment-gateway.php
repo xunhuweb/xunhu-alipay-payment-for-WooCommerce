@@ -132,6 +132,10 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
 	    return $res&&count($res)>0;
 	}
 	private function http_post($url,$data){
+	    if(!function_exists('curl_init')){
+	        throw new Exception('php未安装curl组件',500);
+	    }
+	    
 	    $ch = curl_init();
 	    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
 	    curl_setopt($ch,CURLOPT_URL, $url);

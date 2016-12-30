@@ -25,16 +25,18 @@ function xh_alipay_payment_plugin_action_links($links) {
         'settings' => '<a href="' . admin_url ( 'admin.php?page=wc-settings&tab=checkout&section='.XH_Alipay_Payment_ID ) . '">'.__('Settings',XH_Alipay_Payment).'</a>'
     ), $links );
 }
+if(!class_exists('WC_Payment_Gateway')){
+    return;
+}
+
+require_once XH_Alipay_Payment_DIR.'/class-alipay-wc-payment-gateway.php';
+global $XH_Alipay_Payment_WC_Payment_Gateway;
+$XH_Alipay_Payment_WC_Payment_Gateway=new XH_Alipay_Payment_WC_Payment_Gateway();
 
 add_action('init', 'xh_wechat_payment_for_wc_notify',10);
 if(!function_exists('xh_wechat_payment_for_wc_notify')){
     function xh_wechat_payment_for_wc_notify(){
-        if(!class_exists('WC_Payment_Gateway')){
-            return;
-        }
-        
-        require_once XH_Alipay_Payment_DIR.'/class-alipay-wc-payment-gateway.php';
-        $XH_Alipay_Payment_WC_Payment_Gateway=new XH_Alipay_Payment_WC_Payment_Gateway();
+        global $XH_Alipay_Payment_WC_Payment_Gateway;
          
         $data = $_POST;
         if(!isset($data['hash'])
