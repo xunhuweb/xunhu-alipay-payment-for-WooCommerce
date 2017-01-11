@@ -62,7 +62,7 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
 		      'version'   => '1.0',//api version
 		      'lang'       => get_option('WPLANG','zh-cn'),
 		      'is_app'    => $this->isWebApp()?'Y':'N',
-		      'plugins'   => $this->id,
+		      'plugins'   => 'woo-alipay',
 		      'appid'     => $this->get_option('appid'),
 		      'trade_order_id'=> $order_id,
 		      'payment'   => 'alipay',

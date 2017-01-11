@@ -4,7 +4,7 @@
  * Plugin URI: http://www.wpweixin.net
  * Description: 支付宝扫码支付、支付宝H5支付、支付宝扫码支付
  * Author: 重庆迅虎网络有限公司
- * Version: 1.0.1
+ * Version: 1.0.3
  * Author URI:  http://www.wpweixin.net
  */
 
@@ -12,7 +12,7 @@ if (! defined ( 'ABSPATH' ))
 	exit (); // Exit if accessed directly
 
 if (! defined ( 'XH_Alipay_Payment' )) {define ( 'XH_Alipay_Payment', 'XH_Alipay_Payment' );} else {return;}
-define ( 'XH_Alipay_Payment_VERSION', '1.0.1');
+define ( 'XH_Alipay_Payment_VERSION', '1.0.3');
 define ( 'XH_Alipay_Payment_ID', 'xh-alipay-payment-wc');
 define ( 'XH_Alipay_Payment_FILE', __FILE__);
 define ( 'XH_Alipay_Payment_DIR', rtrim ( plugin_dir_path ( XH_Alipay_Payment_FILE ), '/' ) );
@@ -43,7 +43,9 @@ if(!function_exists('xh_wechat_payment_for_wc_notify')){
             ||!isset($data['trade_order_id'])){
                 return;
         }
-
+        if(isset($data['plugins'])&&$data['plugins']!='woo-alipay'){
+            return;
+        }
         $appkey =$XH_Alipay_Payment_WC_Payment_Gateway->get_option('appsecret');
         $hash =$XH_Alipay_Payment_WC_Payment_Gateway->generate_xh_hash($data,$appkey);
         if($data['hash']!=$hash){
