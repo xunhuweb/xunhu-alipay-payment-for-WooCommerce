@@ -32,6 +32,60 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
 		add_action ( 'woocommerce_thankyou_'.$this->id, array( $this, 'thankyou_page' ) );
 	}
 	
+	public function notify(){
+	    global $XH_Alipay_Payment_WC_Payment_Gateway;
+	     
+	    $data = $_POST;
+	    if(!isset($data['hash'])
+	        ||!isset($data['trade_order_id'])){
+	            return;
+	    }
+	    if(isset($data['plugins'])&&$data['plugins']!='woo-alipay'){
+	        return;
+	    }
+	    $appkey =$XH_Alipay_Payment_WC_Payment_Gateway->get_option('appsecret');
+	    $hash =$XH_Alipay_Payment_WC_Payment_Gateway->generate_xh_hash($data,$appkey);
+	    if($data['hash']!=$hash){
+	        return;
+	    }
+	
+	    $order = new WC_Order($data['trade_order_id']);
+	    try{
+	        if(!$order){
+	            throw new Exception('Unknow Order (id:'.$data['trade_order_id'].')');
+	        }
+	
+	        if($order->needs_payment()&&$data['status']=='OD'){
+	            $order->payment_complete(isset($data['transacton_id'])?$data['transacton_id']:'');
+	        }
+	    }catch(Exception $e){
+	        //looger
+	        $logger = new WC_Logger();
+	        $logger->add( 'xh_wedchat_payment', $e->getMessage() );
+	
+	        $params = array(
+	            'action'=>'fail',
+	            'appid'=>$XH_Alipay_Payment_WC_Payment_Gateway->get_option('appid'),
+	            'errcode'=>$e->getCode(),
+	            'errmsg'=>$e->getMessage()
+	        );
+	
+	        $params['hash']=$XH_Alipay_Payment_WC_Payment_Gateway->generate_xh_hash($params, $appkey);
+	        ob_clean();
+	        print json_encode($params);
+	        exit;
+	    }
+	
+	    $params = array(
+	        'action'=>'success',
+	        'appid'=>$XH_Alipay_Payment_WC_Payment_Gateway->get_option('appid')
+	    );
+	
+	    $params['hash']=$XH_Alipay_Payment_WC_Payment_Gateway->generate_xh_hash($params, $appkey);
+	    ob_clean();
+	    print json_encode($params);
+	    exit;
+	}
 	public function woocommerce_add_gateway($methods) {
 	    $methods [] = $this;
 	    return $methods;
@@ -59,7 +113,7 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
 		    $home_url.='/';
 		}
 		$data=array(
-		      'version'   => '1.0',//api version
+		      'version'   => '1.1',//api version
 		      'lang'       => get_option('WPLANG','zh-cn'),
 		      'is_app'    => $this->isWebApp()?'Y':'N',
 		      'plugins'   => 'woo-alipay',
