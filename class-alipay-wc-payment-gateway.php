@@ -106,12 +106,8 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
 		}
 		
 		$total_amount     = round($order->get_total()*$expire_rate,2);	
-		//处理二级目录问题
-		$home_url = rtrim(home_url());
-		$posi =strripos($home_url, '/');
-		if($posi!==false&&$posi>7){
-		    $home_url.='/';
-		}
+		$home_url = rtrim(home_url(),'/');
+
 		$data=array(
 		      'version'   => '1.1',//api version
 		      'lang'       => get_option('WPLANG','zh-cn'),
