@@ -122,7 +122,7 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
 		      'payment'   => 'alipay',
 		      'total_fee' => $total_amount,
 		      'title'     => $this->get_order_title($order),
-		      'description'=> $this->get_order_desc($order),
+		      'description'=> null,
 		      'time'      => time(),
 		      'notify_url'=> $siteurl,
 		      'return_url'=> $this->get_return_url($order),
@@ -132,7 +132,7 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
 		
 		$hashkey          = $this->get_option('appsecret');
 		$data['hash']     = $this->generate_xh_hash($data,$hashkey);
-		$url              = $this->get_option('transaction_url').'/payment/do.html';
+		$url              = 'https://pay.wordpressopen.com/payment/do.html';
 		
 		try {
 		    $response     = $this->http_post($url, json_encode($data));
@@ -322,14 +322,6 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
     					'type'        => 'text',
     					'css'         => 'width:400px',
     					'default'     => '',
-    					'section'     => 'default',
-                        'description' =>__('<a target="_blank" href="http://mp.wordpressopen.com">register and get app secret</a>.', XH_Alipay_Payment )
-				),
-				'transaction_url' => array(
-    					'title'       => __( 'Transaction Url', XH_Alipay_Payment ),
-    					'type'        => 'text',
-    					'css'         => 'width:400px',
-    					'default'     => 'https://pay.wordpressopen.com',
     					'section'     => 'default'
 				),
 				'exchange_rate' => array (
@@ -354,7 +346,7 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
 	} 
 	
 	public function get_order_title($order, $limit = 98) {
-		$title ="#{$order->id}";
+		$title ="#{$order->get_id()}";
 		
 		$order_items = $order->get_items();
 		if($order_items){
@@ -368,75 +360,8 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
 		    }
 		}
 		
-		$title = mb_strimwidth($title, 0, $limit);
+		$title = mb_strimwidth($title, 0, $limit,'utf-8');
 		return apply_filters('xh-payment-get-order-title', $title,$order);
-	}
-	
-	/**
-	 * 
-	 * @param WC_Order $order
-	 * @param number $limit
-	 * @param string $trimmarker
-	 */
-	public function get_order_desc($order) {
-	    $descs=array();
-	    
-	    $order_items = $order->get_items();
-	    if($order_items){
-	        $qty = count($order_items);
-	        $index=0;
-    	    foreach ($order_items as $item_id =>$item){
-    	       $result =array(
-    	              'order_item_id'=>$item_id
-    	       );
-    	        
-    	        if($item['item_meta_array']){
-    	           foreach ($item['item_meta_array'] as $key_id=>$meta){
-    	               if($meta->key=='_qty'){
-    	                   $result['qty']=$meta->value;
-    	                   continue;
-    	               }
-    	               
-    	               if($meta->key=='_product_id'){
-    	                   $result['product_id']=$meta->value;
-    	                   continue;
-    	               }
-    	           } 
-    	        }
-    	   
-    	        if(isset( $result['product_id'])){
-    	            $product = new WC_Product($result['product_id']);
-    	            if($product){
-    	                //获取图片
-    	                $imgsrc ='';
-    	                $img_id = $product->get_image_id();
-    	                if($img_id>0){
-    	                    $img = get_post($img_id);
-    	                    if($img){
-    	                        $imgsrc=$img->guid;
-    	                    }
-    	                }
-    	                
-    	                $desc=array(
-    	                       'id'=>$result['product_id'],
-    	                       'order_qty'=>$result['qty'],
-    	                       'order_item_id'=>$result['order_item_id'],
-    	                       'url'=>$product->get_permalink(),
-    	                       'sale_price'=>$product->get_sale_price(),
-    	                       'image'=>$imgsrc,
-    	                       'title'=>$product->get_title(),
-    	                       'sku'=>$product->get_sku(),
-    	                       'summary'=>$product->post->post_excerpt,
-    	                       'content'=>$product->post->post_content
-    	                );
-    	            }
-    	        }
-    	        
-    	       $descs[]=$desc;
-            }
-	    }
-	   
-	    return apply_filters('xh-payment-get-order-desc', json_encode($descs),$order);
 	}
 }
 
