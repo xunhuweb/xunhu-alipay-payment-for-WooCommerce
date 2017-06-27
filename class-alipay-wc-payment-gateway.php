@@ -266,7 +266,8 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
 	 * @param bool $plain_text
 	 */
 	public function email_instructions( $order, $sent_to_admin, $plain_text = false ) {
-	    if ( $this->instructions && ! $sent_to_admin && $this->id === $order->payment_method ) {
+	    $method = method_exists($order ,'get_payment_method')?$order->get_payment_method():$order->payment_method;
+	    if ( $this->instructions && ! $sent_to_admin && $this->id === $method) {
 	        echo wpautop( wptexturize( $this->instructions ) ) . PHP_EOL;
 	    }
 	}
@@ -346,7 +347,8 @@ class XH_Alipay_Payment_WC_Payment_Gateway extends WC_Payment_Gateway {
 	} 
 	
 	public function get_order_title($order, $limit = 98) {
-		$title ="#{$order->get_id()}";
+	    $order_id = method_exists($order, 'get_id')? $order->get_id():$order->id;
+		$title ="#{$order_id}";
 		
 		$order_items = $order->get_items();
 		if($order_items){
